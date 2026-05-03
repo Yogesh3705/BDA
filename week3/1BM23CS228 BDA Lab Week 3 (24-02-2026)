@@ -1,0 +1,109 @@
+bmscecse@bmscecse-HP-Pro-Tower-400-G9-PCI-Desktop-PC:~$ cqlsh
+Connected to Test Cluster at 127.0.0.1:9042
+[cqlsh 6.1.0 | Cassandra 4.1.8 | CQL spec 3.4.6 | Native protocol v5]
+Use HELP for help.
+
+cqlsh> create keyspace Library272
+   ... with replication = {'class':'SimpleStrategy','replication_factor':1};
+
+cqlsh:library> use library272;
+
+cqlsh:library272> CREATE TABLE Library_Info (
+              ...     Stud_Id int,
+              ...     Book_Id int,
+              ...     Stud_Name text,
+              ...     Book_Name text,
+              ...     Date_of_issue timestamp,
+              ...     PRIMARY KEY (Stud_Id, Book_Id)
+              ... );
+
+cqlsh:library272> CREATE TABLE Library_Counter (
+              ...     Stud_Id int,
+              ...     Book_Name text,
+              ...     Counter_value counter,
+              ...     PRIMARY KEY (Stud_Id, Book_Name)
+              ... );
+
+cqlsh:library272> BEGIN BATCH
+              ... 
+              ... INSERT INTO Library_Info (Stud_Id, Book_Id, Stud_Name, Book_Name, Date_of_issue)
+              ... VALUES (111, 1, 'Rohan', 'Big Data Analytics', '2024-02-10');
+              ... 
+              ... INSERT INTO Library_Info (Stud_Id, Book_Id, Stud_Name, Book_Name, Date_of_issue)
+              ... VALUES (112, 2, 'Arjun', 'BDA', '2024-02-11');
+              ... 
+              ... INSERT INTO Library_Info (Stud_Id, Book_Id, Stud_Name, Book_Name, Date_of_issue)
+              ... VALUES (112, 3, 'Arjun', 'BDA', '2024-02-12');
+              ... 
+              ... APPLY BATCH;
+
+cqlsh:library272> SELECT * FROM Library_Info;
+
+ stud_id | book_id | book_name          | date_of_issue                   | stud_name
+---------+---------+--------------------+---------------------------------+-----------
+     111 |       1 | Big Data Analytics | 2024-02-09 18:30:00.000000+0000 |     Rohan
+     112 |       2 |                BDA | 2024-02-10 18:30:00.000000+0000 |     Arjun
+     112 |       3 |                BDA | 2024-02-11 18:30:00.000000+0000 |     Arjun
+
+(3 rows)
+
+cqlsh:library272> UPDATE Library_Counter
+              ... SET Counter_value = Counter_value + 1
+              ... WHERE Stud_Id = 112 AND Book_Name = 'BDA';
+
+cqlsh:library272> SELECT * FROM Library_Counter;
+
+ stud_id | book_name | counter_value
+---------+-----------+---------------
+     112 |       BDA |             1
+
+(1 rows)
+
+cqlsh:library272> SELECT Counter_value
+              ... FROM Library_Counter
+              ... WHERE Stud_Id = 112 AND Book_Name = 'BDA';
+
+ counter_value
+---------------
+             2
+
+(1 rows)
+
+
+#EXPORT
+qlsh:library272> COPY Library_Info (Stud_Id, Book_Id, Stud_Name, Book_Name, Date_of_issue)
+              ... TO '/home/bmscecse/Desktop/library272_info.csv';
+Using 16 child processes
+
+Starting copy of library272.library_info with columns [stud_id, book_id, stud_name, book_name, date_of_issue].
+Processed: 3 rows; Rate:      46 rows/s; Avg. rate:      46 rows/s
+3 rows exported to 1 files in 0.087 seconds.
+
+
+cqlsh:library272> COPY Library_Counter (Stud_Id, Book_Name, Counter_value)
+              ... TO '/home/bmscecse/Desktop/library272_counter.csv';
+Using 16 child processes
+
+Starting copy of library272.library_counter with columns [stud_id, book_name, counter_value].
+Processed: 1 rows; Rate:      25 rows/s; Avg. rate:      25 rows/s
+1 rows exported to 1 files in 0.058 seconds.
+
+#IMPORT
+cqlsh:library272> COPY Library_Info (Stud_Id, Book_Id, Stud_Name, Book_Name, Date_of_issue)
+              ... FROM '/home/bmscecse/Desktop/library272_info.csv';
+Using 16 child processes
+
+Starting copy of library272.library_info with columns [stud_id, book_id, stud_name, book_name, date_of_issue].
+Processed: 3 rows; Rate:       4 rows/s; Avg. rate:       7 rows/s
+3 rows imported from 1 files in 0.450 seconds (0 skipped).
+
+
+cqlsh:library272> COPY Library_Counter (Stud_Id, Book_Name, Counter_value)
+              ... FROM '/home/bmscecse/Desktop/library272_counter.csv';
+Using 16 child processes
+
+Starting copy of library272.library_counter with columns [stud_id, book_name, counter_value].
+Processed: 1 rows; Rate:       2 rows/s; Avg. rate:       3 rows/s
+1 rows imported from 1 files in 0.362 seconds (0 skipped).
+cqlsh:library272> 
+
